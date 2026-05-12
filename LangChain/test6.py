@@ -20,7 +20,7 @@ def multiply(
     """两数相乘"""
     return a * b
 
-model = ChatDeepSeek(model="deepseek-v4-flash")
+model = ChatDeepSeek(model="deepseek-chat")
 
 # 绑定工具
 tools = [add, multiply]
