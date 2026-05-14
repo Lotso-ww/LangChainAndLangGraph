@@ -1,7 +1,10 @@
 from langchain_core.messages import HumanMessage
 from langchain_deepseek import ChatDeepSeek
 from langchain_tavily import TavilySearch
+from pydantic import BaseModel, Field
 import datetime
+
+from pydantic import BaseModel
 
 
 model = ChatDeepSeek(model="deepseek-chat")
@@ -22,4 +25,11 @@ for tool_call in ai_message.tool_calls:
     tool_message = tools.invoke(tool_call)
     message.append(tool_message)
 
-print(model_with_tool.invoke(message).content)
+class SearchResult(BaseModel):
+    """结构化搜索对象"""
+
+    query: str = Field(description="搜索查询")
+    findings: str = Field(description="查询结果摘要")
+
+model_with_structured = model_with_tool.with_structured_output(SearchResult)
+print(model_with_structured.invoke(message))
