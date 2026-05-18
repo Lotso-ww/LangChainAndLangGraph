@@ -1,6 +1,5 @@
 import asyncio
 
-import aiohttp
 from langchain_deepseek import ChatDeepSeek
 
 model = ChatDeepSeek(model="deepseek-chat")
