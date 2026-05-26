@@ -8,11 +8,11 @@ model = ChatDeepSeek(model="deepseek-v4-flash")
 chain = prompt | model
 
 while True:
-    task = input("\n 你的任务是什么? (输入 quit 退出聊天)\n")
+    task = input("\n你的任务是什么? (输入 quit 退出聊天)\n")
     if task == "quit":
         break
 
-    lazy_prompt = input("\n 你当前任务的对应提示词？(输入 quit 退出聊天)\n")
+    lazy_prompt = input("\n你当前任务的对应提示词？(输入 quit 退出聊天)\n")
     if lazy_prompt == "quit":
         break
 
