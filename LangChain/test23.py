@@ -1,12 +1,12 @@
 from langchain_core.prompt_values import PromptValue
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import Runnable
+from langchain_core.utils.function_calling import tool_example_to_messages
 from langchain_deepseek import ChatDeepSeek
 from typing import Optional, List, Any, Sequence
 from pydantic import BaseModel, Field
 from langchain_core.messages import HumanMessage, SystemMessage, BaseMessage
 
-from LangChain.test21 import chain
 
 model = ChatDeepSeek(model="deepseek-chat")
 # 1. 定义结构化输出
@@ -55,7 +55,7 @@ class Data(BaseModel):
 
 
 # 2. 定义案例(还不是Message)
-example = [
+examples = [
     (
         "海洋是广阔的, 蓝色的。它有两万多英尺深",
         Data(People=[]),
@@ -73,21 +73,32 @@ prompt_template = ChatPromptTemplate(
     [
         SystemMessage(content="你是一个提取信息的专家，只从文本中提取相关信息。如果您不知道要提取的属性的值，属性值返回null"),
         MessagesPlaceholder("example_messages"), # 消息占位符, 将示例转换为message后插入进来
-        ("user","new_message") # "篮球场上，身高两米的中锋王伟默契地将球传给一米七的后卫挚友李明，完成一记绝杀。这对老友用十年配合弥补了身高的差距。"
+        ("user","{new_messages}") # "篮球场上，身高两米的中锋王伟默契地将球传给一米七的后卫挚友李明，完成一记绝杀。这对老友用十年配合弥补了身高的差距。"
     ]
 )
 
 # 4. 将实例转换为Messages
 example_messages = []
+for txt, tool_call in examples:
+    if tool_call.People:
+        ai_response = "检测到人"
+    else:
+        ai_response = "未检测到人"
+    example_messages.extend(tool_example_to_messages(
+        txt, # 示例输入
+        [tool_call],
+        ai_response=ai_response,
+    ))
 
+# print(example_messages)
 # 5. 定义的结构化模型
 structured_model = model.with_structured_output(schema=Data)
 
 # 6. 定义链
 chain = prompt_template | structured_model
-chain.invoke(
+print(chain.invoke(
     {
         "example_messages": example_messages,
         "new_messages": "篮球场上，身高两米的中锋王伟默契地将球传给一米七的后卫挚友李明，完成一记绝杀。这对老友用十年配合弥补了身高的差距。",
     }
-).pretty_print()
+))
