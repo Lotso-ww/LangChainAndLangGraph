@@ -1,16 +1,17 @@
 # 反义词示例合集
+from langchain_community.example_selectors import NGramOverlapExampleSelector
 from langchain_community.vectorstores import Chroma
 from langchain_core.example_selectors import LengthBasedExampleSelector, SemanticSimilarityExampleSelector, \
     MaxMarginalRelevanceExampleSelector
 from langchain_core.prompts import PromptTemplate, FewShotPromptTemplate
 
-example = [
-    {"input": "happy", "output": "sad"},
-    {"input": "tall", "output": "short"},
-    {"input": "energetic", "output": "lethargic"},
-    {"input": "sunny", "output": "gloomy"},
-    {"input": "windy", "output": "calm"},
-]
+# example = [
+#     {"input": "happy", "output": "sad"},
+#     {"input": "tall", "output": "short"},
+#     {"input": "energetic", "output": "lethargic"},
+#     {"input": "sunny", "output": "gloomy"},
+#     {"input": "windy", "output": "calm"},
+# ]
 
 # 示例模版
 example_prompt = PromptTemplate.from_template("Input: {input}\nOutput: {output}")
@@ -34,20 +35,43 @@ example_prompt = PromptTemplate.from_template("Input: {input}\nOutput: {output}"
 #     k=2,                                              # 生成示例的数量
 # )
 
-# 示例选择器(MMR)
-example_selector = MaxMarginalRelevanceExampleSelector.from_examples(
-    example,                                          # 示例集
-    # OpenAIEmbeddings(model="text-embedding-3-large"), # 使用嵌入模型的能力度量语义
-    Chroma,                                           # 存储向量：向量数据库
-    k=2,                                              # 生成示例的数量
+# # 示例选择器(MMR)
+# example_selector = MaxMarginalRelevanceExampleSelector.from_examples(
+#     example,                                          # 示例集
+#     # OpenAIEmbeddings(model="text-embedding-3-large"), # 使用嵌入模型的能力度量语义
+#     Chroma,                                           # 存储向量：向量数据库
+#     k=2,                                              # 生成示例的数量
+# )
+
+examples = [
+    {"input": "See Spot run.", "output": "看见Spot跑。"},
+    {"input": "My dog barks.", "output": "我的狗叫。"},
+    {"input": "Spot can run.", "output": "Spot可以跑。"},
+]
+
+# 示例选择器(Ngram)
+example_selector = NGramOverlapExampleSelector(
+    examples=examples,
+    example_prompt=example_prompt,
+    threshold=-1.0
 )
-# 少样本模版
+
 few_shot_prompt = FewShotPromptTemplate(
     example_selector=example_selector,
     example_prompt=example_prompt,
-    prefix = "给出每个输入的词的反义词",
-    suffix = "Input: {adjective}\nOutput: ",
-    input_variables=["adjective"],
+    prefix = "给出每个输入的中文翻译：",
+    suffix = "Input: {sentence}\nOutput: ",
+    input_variables=["sentence"],
 )
 
-print(few_shot_prompt.invoke({"adjective": "big"}).to_messages()[0].content)
+print(few_shot_prompt.invoke({"sentence": "Spot can run fast."}).to_messages()[0].content)
+# # 少样本模版
+# few_shot_prompt = FewShotPromptTemplate(
+#     example_selector=example_selector,
+#     example_prompt=example_prompt,
+#     prefix = "给出每个输入的词的反义词",
+#     suffix = "Input: {adjective}\nOutput: ",
+#     input_variables=["adjective"],
+# )
+
+# print(few_shot_prompt.invoke({"adjective": "big"}).to_messages()[0].content)
