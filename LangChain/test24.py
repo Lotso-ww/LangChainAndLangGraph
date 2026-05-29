@@ -1,6 +1,7 @@
 # 反义词示例合集
 from langchain_community.vectorstores import Chroma
-from langchain_core.example_selectors import LengthBasedExampleSelector, SemanticSimilarityExampleSelector
+from langchain_core.example_selectors import LengthBasedExampleSelector, SemanticSimilarityExampleSelector, \
+    MaxMarginalRelevanceExampleSelector
 from langchain_core.prompts import PromptTemplate, FewShotPromptTemplate
 
 example = [
@@ -25,14 +26,21 @@ example_prompt = PromptTemplate.from_template("Input: {input}\nOutput: {output}"
 #     # get_text_length: Callable[[str], int] = lambda x: len(re.split("\n| ", x))
 # )
 
-# 示例选择器(语义)
-example_selector = SemanticSimilarityExampleSelector.from_examples(
+# # 示例选择器(语义)
+# example_selector = SemanticSimilarityExampleSelector.from_examples(
+#     example,                                          # 示例集
+#     # OpenAIEmbeddings(model="text-embedding-3-large"), # 使用嵌入模型的能力度量语义
+#     Chroma,                                           # 存储向量：向量数据库
+#     k=2,                                              # 生成示例的数量
+# )
+
+# 示例选择器(MMR)
+example_selector = MaxMarginalRelevanceExampleSelector.from_examples(
     example,                                          # 示例集
     # OpenAIEmbeddings(model="text-embedding-3-large"), # 使用嵌入模型的能力度量语义
     Chroma,                                           # 存储向量：向量数据库
     k=2,                                              # 生成示例的数量
 )
-
 # 少样本模版
 few_shot_prompt = FewShotPromptTemplate(
     example_selector=example_selector,
