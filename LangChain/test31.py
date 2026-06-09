@@ -1,0 +1,38 @@
+from langchain_community.document_loaders import UnstructuredMarkdownLoader
+from langchain_community.embeddings import DashScopeEmbeddings
+from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_text_splitters import CharacterTextSplitter
+
+# 定义嵌入模型和向量存储
+embeddings = DashScopeEmbeddings(model="text-embedding-v3")
+vector_store = InMemoryVectorStore(embedding=embeddings)
+
+# single 模式，只生成一个大文档
+loader = UnstructuredMarkdownLoader("../Doc/md/脚手架级微服务租房平台Q&A.md",)
+# Document 列表
+data = loader.load()
+
+# tiktoken 分词器
+text_splitter = CharacterTextSplitter.from_tiktoken_encoder(
+    encoding_name="cl100k_base", # cl100k_base 是tiktoken 分词器中的一种编码方式
+    chunk_size=400,              # 块token大小(参考标准，为了保证段落/句子完整，会超出此设定的大小)
+    chunk_overlap=50,            # 块重叠大小
+)
+
+# 文档列表
+docs = text_splitter.split_documents(data)
+
+# 存储文档到内存向量存储中：将要存储的文档列表进行编排索引
+ids = vector_store.add_documents(docs)
+print(f"共有{len(docs)}个文档, 有{len(ids)}个索引")
+print(f"前三个索引是{ids[:3]}")
+
+# 根据索引获取文档
+doc_2 = vector_store.get_by_ids(ids[:2])
+print(doc_2)
+
+# 删除文档
+vector_store.delete(ids[:2])
+doc_3 = vector_store.get_by_ids(ids[:3])
+# 删除了两个所以看到的应该是第三个
+print(doc_3)
