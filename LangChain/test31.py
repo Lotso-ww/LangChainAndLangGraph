@@ -38,6 +38,7 @@ ids = vector_store.add_documents(docs)
 # # 删除了两个所以看到的应该是第三个
 # print(doc_3)
 
+#*************************************************检索*******************************************************
 # 检索
 # similarity_search: 根据余弦相似度来捕捉语义的
 # search_docs = vector_store.similarity_search(query="项目介绍", k=2)
@@ -59,4 +60,3 @@ search_docs = vector_store.similarity_search(
 for doc in search_docs:
     print("*" * 30)
     print(doc)
-
