@@ -1,6 +1,7 @@
 from langchain_community.document_loaders import UnstructuredMarkdownLoader
 from langchain_community.embeddings import DashScopeEmbeddings
 from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_core.documents import Document
 from langchain_text_splitters import CharacterTextSplitter
 
 # 定义嵌入模型和向量存储
@@ -24,15 +25,38 @@ docs = text_splitter.split_documents(data)
 
 # 存储文档到内存向量存储中：将要存储的文档列表进行编排索引
 ids = vector_store.add_documents(docs)
-print(f"共有{len(docs)}个文档, 有{len(ids)}个索引")
-print(f"前三个索引是{ids[:3]}")
+# print(f"共有{len(docs)}个文档, 有{len(ids)}个索引")
+# print(f"前三个索引是{ids[:3]}")
+#
+# # 根据索引获取文档
+# doc_2 = vector_store.get_by_ids(ids[:2])
+# print(doc_2)
+#
+# # 删除文档
+# vector_store.delete(ids[:2])
+# doc_3 = vector_store.get_by_ids(ids[:3])
+# # 删除了两个所以看到的应该是第三个
+# print(doc_3)
 
-# 根据索引获取文档
-doc_2 = vector_store.get_by_ids(ids[:2])
-print(doc_2)
+# 检索
+# similarity_search: 根据余弦相似度来捕捉语义的
+# search_docs = vector_store.similarity_search(query="项目介绍", k=2)
+# for doc in search_docs:
+#     print("*" * 30)
+#     print(doc)
 
-# 删除文档
-vector_store.delete(ids[:2])
-doc_3 = vector_store.get_by_ids(ids[:3])
-# 删除了两个所以看到的应该是第三个
-print(doc_3)
+# 元数据过滤-》检索
+# {'source': '../Docs/markdown/脚手架级微服务租房平台Q&A.md'}
+def _filter_function(doc: Document) -> bool:
+    return doc.metadata.get("source") == "../Docs/markdown/脚手架级微服务租房平台Q&A.md"
+
+search_docs = vector_store.similarity_search(
+    query="项目介绍",
+    k=2,
+    filter=_filter_function   # filter 接收一个bool值
+)
+
+for doc in search_docs:
+    print("*" * 30)
+    print(doc)
+
